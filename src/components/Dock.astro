@@ -73,8 +73,8 @@ const day = now.getDate();
 </div>
 
 <script>
-  const reach = 3;  // icons grow up to this many icon widths from the pointer
-  const largest = 1.65;
+  const reach = 2;  // icons grow up to this many icon widths from the pointer
+  const largest = 1.35;
 
   for (const dock of document.querySelectorAll<HTMLElement>('[data-dock]')) {
     const shelves = [...dock.querySelectorAll<HTMLElement>('.shelf')];
@@ -87,32 +87,40 @@ const day = now.getDate();
     };
     announce();
 
+    // Magnification: each icon's size follows a cosine of its distance from the pointer.
+    // Distances are measured from where the icons sit at rest. Measuring the grown icons
+    // instead moves them under a still pointer, so they kept drifting and jittering.
+    const magnify = (x: number | null) => {
+      const shelf = shelves[current];
+      const icons = [...shelf.querySelectorAll<HTMLElement>('[data-magnify]')];
+      const size = shelf.querySelector<HTMLElement>('[data-next]')!.offsetHeight;  // --icon in pixels
+      const boxes = icons.map((icon) => icon.getBoundingClientRect());
+      // The shelf is centered, so it grows by half of the icons' total growth on each side.
+      let shift = boxes.reduce((sum, box) => sum + box.width - size, 0) / 2;
+      icons.forEach((icon, i) => {
+        const rest = boxes[i].left + shift + size / 2;
+        shift -= boxes[i].width - size;
+        const distance = x === null ? 1 : Math.abs(x - rest) / (size * reach);
+        const scale = distance < 1 ? 1 + (largest - 1) * Math.cos((distance * Math.PI) / 2) : 1;
+        icon.style.setProperty('--s', scale.toFixed(3));
+      });
+    };
+    let pointer: number | null = null;
+    if (matchMedia('(hover: hover) and (prefers-reduced-motion: no-preference)').matches) {
+      dock.addEventListener('pointermove', (e) => magnify((pointer = e.clientX)));
+      dock.addEventListener('pointerleave', () => magnify((pointer = null)));
+    }
+
     for (const button of dock.querySelectorAll<HTMLButtonElement>('[data-next]')) {
       button.addEventListener('click', () => {
+        magnify(null);  // so the hidden profile is back at rest when it returns
         shelves[current].hidden = true;
         current = (current + 1) % shelves.length;
         shelves[current].hidden = false;
         shelves[current].querySelector<HTMLElement>('[data-next]')?.focus();
+        if (pointer !== null) magnify(pointer);
         announce();
       });
-    }
-
-    // Magnification: each icon's size follows a cosine of its distance from the pointer.
-    const magnify = (x: number | null) => {
-      for (const icon of shelves[current].querySelectorAll<HTMLElement>('[data-magnify]')) {
-        let scale = 1;
-        if (x !== null) {
-          const box = icon.getBoundingClientRect();
-          const size = box.height;
-          const distance = Math.abs(x - (box.left + box.width / 2)) / (size * reach);
-          scale = distance < 1 ? 1 + (largest - 1) * Math.cos((distance * Math.PI) / 2) : 1;
-        }
-        icon.style.setProperty('--s', scale.toFixed(3));
-      }
-    };
-    if (matchMedia('(hover: hover) and (prefers-reduced-motion: no-preference)').matches) {
-      dock.addEventListener('pointermove', (e) => magnify(e.clientX));
-      dock.addEventListener('pointerleave', () => magnify(null));
     }
 
     const clock = () => {
@@ -131,6 +139,8 @@ const day = now.getDate();
     justify-content: center;
     max-width: 100%;
     font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
+    -webkit-user-select: none;
+    user-select: none;
   }
   .shelf {
     --gap: calc(var(--icon) * 0.14);
@@ -138,6 +148,8 @@ const day = now.getDate();
     align-items: flex-end;
     gap: var(--gap);
     padding: calc(var(--icon) * 0.2) calc(var(--icon) * 0.22) calc(var(--icon) * 0.26);
+    /* A fixed height: magnified icons grow out of the top, like the real dock, instead of pushing the page. */
+    height: calc(var(--icon) * 1.46);
     background: var(--dock-bg, rgba(255 255 255 / 0.16));
     backdrop-filter: blur(24px) saturate(1.6);
     -webkit-backdrop-filter: blur(24px) saturate(1.6);
@@ -176,7 +188,7 @@ const day = now.getDate();
     pointer-events: none;
     transition: opacity 120ms;
   }
-  .app:hover .name { opacity: 1; }
+  @media (hover: hover) { .app:hover .name { opacity: 1; } }
 
   .profile {
     width: calc(var(--icon) * 1.18);
