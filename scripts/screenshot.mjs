@@ -9,7 +9,8 @@ import { createRequire } from 'node:module';
 const { chromium } = createRequire(import.meta.url)('playwright');
 
 const port = 4329;
-const server = spawn('npx', ['astro', 'preview', '--port', String(port)], { stdio: 'ignore' });
+// In its own process group, so stopping it also stops the server npx starts.
+const server = spawn('npx', ['astro', 'preview', '--port', String(port)], { stdio: 'ignore', detached: true });
 await new Promise((resolve) => setTimeout(resolve, 2500));
 await mkdir('screenshots', { recursive: true });
 
@@ -43,5 +44,5 @@ try {
   }
 } finally {
   await browser.close();
-  server.kill();
+  process.kill(-server.pid);
 }
