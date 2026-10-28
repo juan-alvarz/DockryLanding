@@ -39,35 +39,36 @@ const day = now.getDate();
 <div class={`dock ${className}`} data-dock>
   {t.demo.profiles.map((profile, index) => (
     <div class="shelf" data-profile={profile.name} data-color={profile.color} hidden={index !== 0}>
-      <button class="item profile" type="button" data-next aria-label={`${t.demo.profileHint}: ${profile.name}`} title={t.demo.profileHint} style={`--tint: ${profile.color}`}>
+      <button class="item profile" style={`--tint: ${profile.color}; --i: 0`} type="button" data-next aria-label={`${t.demo.profileHint}: ${profile.name}`} title={t.demo.profileHint}>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d={profileSymbols[profile.name]} /></svg>
         <span>{profile.name}</span>
       </button>
-      <i class="separator" aria-hidden="true"></i>
-      {profile.apps.map((name) => (
-        <span class="item app" data-magnify data-name={name} style={`--tint: ${apps[name].color}`}>
+      <i class="separator" aria-hidden="true" style="--i: 1"></i>
+      {profile.apps.map((name, i) => (
+        <span class="item app" data-magnify data-name={name} style={`--tint: ${apps[name].color}; --i: ${i + 2}`}>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d={apps[name].path} /></svg>
           {running.has(name) && <i class="dot" aria-hidden="true"></i>}
           <span class="name">{name}</span>
         </span>
       ))}
-      <i class="separator" aria-hidden="true"></i>
-      {profile.widgets.map((widget) => (
-        widget === 'clock' ? <span class="item widget clock" data-clock>{time}</span>
-        : widget === 'date' ? <span class="item widget date"><small>{month}</small>{day}</span>
+      <i class="separator" aria-hidden="true" style={`--i: ${profile.apps.length + 2}`}></i>
+      {profile.widgets.map((widget, i) => {
+        const order = `--i: ${profile.apps.length + 3 + i}`;
+        return widget === 'clock' ? <span class="item widget clock" style={order} data-clock>{time}</span>
+        : widget === 'date' ? <span class="item widget date" style={order}><small>{month}</small>{day}</span>
         : widget === 'claude' ? (
-          <span class="item widget claude wide-only">
-            <small>Claude</small>
-            <span class="bar"><b style="width: 34%"></b></span>
-            <span class="bar"><b style="width: 72%"></b></span>
+          <span class="item widget claude wide-only" style={order}>
+            <small>✦ Claude</small>
+            <span class="limit">5h <span class="bar"><b style="width: 34%"></b></span> 34%</span>
+            <span class="limit">7d <span class="bar"><b style="width: 72%"></b></span> 72%</span>
           </span>
         ) : (
-          <span class="item widget spotify">
+          <span class="item widget spotify" style={order}>
             <span class="art" aria-hidden="true"></span>
             <span class="song wide-only"><b>{t.demo.song[0]}</b><small>{t.demo.song[1]}</small></span>
           </span>
-        )
-      ))}
+        );
+      })}
     </div>
   ))}
 </div>
@@ -114,6 +115,7 @@ const day = now.getDate();
     for (const button of dock.querySelectorAll<HTMLButtonElement>('[data-next]')) {
       button.addEventListener('click', () => {
         magnify(null);  // so the hidden profile is back at rest when it returns
+        dock.dataset.switched = '';  // the new profile's icons come in without waiting for the dock
         shelves[current].hidden = true;
         current = (current + 1) % shelves.length;
         shelves[current].hidden = false;
@@ -171,7 +173,8 @@ const day = now.getDate();
     border-radius: var(--tile-radius, 22%);
     transition: width 90ms ease-out, height 90ms ease-out;
   }
-  .app { background: linear-gradient(160deg, color-mix(in srgb, var(--tint), white 18%), var(--tint)); box-shadow: 0 2px 6px rgba(0 0 0 / 0.18); }
+  /* Close to a macOS app icon: a lit top edge and a soft shadow under it. */
+  .app { background: linear-gradient(180deg, color-mix(in srgb, var(--tint), white 22%), var(--tint) 55%, color-mix(in srgb, var(--tint), black 10%)); box-shadow: inset 0 1px 0 rgba(255 255 255 / 0.35), inset 0 0 0 0.5px rgba(0 0 0 / 0.12), 0 2px 5px rgba(0 0 0 / 0.2); }
   .app svg, .profile svg { width: 56%; height: 56%; fill: none; stroke: #fff; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
   .dot { position: absolute; bottom: calc(var(--icon) * -0.17); width: 4px; height: 4px; border-radius: 50%; background: currentColor; opacity: 0.8; }
 
@@ -191,7 +194,7 @@ const day = now.getDate();
   @media (hover: hover) { .app:hover .name { opacity: 1; } }
 
   .profile {
-    width: calc(var(--icon) * 1.18);
+    width: var(--icon);
     height: var(--icon);
     gap: 1px;
     align-content: center;
@@ -201,7 +204,7 @@ const day = now.getDate();
     color: #fff;
     font: 600 calc(var(--icon) * 0.2) / 1 -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
   }
-  .profile svg { width: 42%; height: 42%; }
+  .profile svg { width: calc(var(--icon) * 0.4); height: calc(var(--icon) * 0.4); stroke-width: 2; }
   .profile:hover { filter: brightness(1.08); }
   /* So it still stands out on a page in the same color. */
   .profile { box-shadow: inset 0 0 0 1.5px rgba(255 255 255 / 0.5), 0 2px 6px rgba(0 0 0 / 0.18); }
@@ -220,9 +223,11 @@ const day = now.getDate();
   .clock { font-size: calc(var(--icon) * 0.3); }
   .date { width: var(--icon); padding: 0; align-content: center; gap: 0; font-size: calc(var(--icon) * 0.42); line-height: 1; font-weight: 500; }
   .date small { font-size: calc(var(--icon) * 0.18); font-weight: 700; color: #ff5a4f; }
-  .claude { grid-template-columns: 1fr; align-content: center; justify-items: start; gap: calc(var(--icon) * 0.08); width: calc(var(--icon) * 2.3); }
-  .claude small { font-size: calc(var(--icon) * 0.2); opacity: 0.7; }
-  .bar { width: 100%; height: 5px; border-radius: 3px; background: rgba(255 255 255 / 0.2); }
+  .claude { grid-template-columns: 1fr; align-content: center; justify-items: start; gap: calc(var(--icon) * 0.05); width: calc(var(--icon) * 2.5); }
+  .claude small { font-size: calc(var(--icon) * 0.2); font-weight: 500; opacity: 0.75; }
+  .limit { display: flex; align-items: center; gap: calc(var(--icon) * 0.1); width: 100%; font-size: calc(var(--icon) * 0.17); font-weight: 500; }
+  .limit .bar { flex: 1; }
+  .bar { width: 100%; height: 4px; border-radius: 2px; background: color-mix(in srgb, currentColor 18%, transparent); }
   .bar b { display: block; height: 100%; border-radius: 3px; background: #D97757; }
   .spotify { display: flex; gap: calc(var(--icon) * 0.16); }
   .art { width: calc(var(--icon) * 0.72); height: calc(var(--icon) * 0.72); border-radius: 18%; background: radial-gradient(circle at 50% 46%, #ffbe5a 0 30%, transparent 31%), linear-gradient(160deg, #3a2a8a, #e2557a); }
@@ -232,4 +237,14 @@ const day = now.getDate();
   @media (max-width: 560px) {
     .wide-only { display: none; }
   }
+
+  /* Entrance: the dock rises in, then its items pop up one after another. Switching profiles
+     plays the pop again, quicker. Without JavaScript it still ends fully shown. */
+  @media (prefers-reduced-motion: no-preference) {
+    .dock { animation: dock-rise 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+    .shelf > * { animation: item-pop 460ms cubic-bezier(0.3, 1.35, 0.5, 1) both; animation-delay: calc(320ms + var(--i, 0) * 45ms); }
+    .dock[data-switched] .shelf > * { animation-duration: 340ms; animation-delay: calc(var(--i, 0) * 25ms); }
+  }
+  @keyframes dock-rise { from { opacity: 0; transform: translateY(48px) scale(0.94); } }
+  @keyframes item-pop { from { opacity: 0; transform: translateY(16px) scale(0.55); } }
 </style>
