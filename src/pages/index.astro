@@ -1,21 +1,221 @@
 ---
-// A placeholder until a design is merged: each design's pull request replaces this page.
+// Option 1, "Profiles": the page takes on the active profile's color. Switch the demo dock
+// from Work to Chill and every color band turns from blue to orange. Bricolage Grotesque,
+// Inter, flat bands, sharp corners.
+import '@fontsource/bricolage-grotesque/latin-800';
+import '@fontsource/inter/latin-400';
+import '@fontsource/inter/latin-600';
+import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import Dock from '../components/Dock.astro';
+import icon from '../assets/icon.png';
+import switcher from '../assets/3-profile-switcher.png';
+import magnification from '../assets/5-magnification.png';
+import spotify from '../assets/10-spotify-player.png';
+import { REPO, RELEASES } from '../config';
 import { useTranslations } from '../i18n';
 
 const t = useTranslations(Astro.currentLocale);
+const [first, middle, last] = t.hero.headline;
 ---
-<Base themeColor="#3563E9" colorScheme="dark">
+<Base themeColor="#3563E9" colorScheme="light">
+  <header class="hero">
+    <nav class="wrap">
+      <a class="brand" href="#top"><Image src={icon} alt="" width={34} height={34} /> Dockry</a>
+      <ul>
+        <li class="optional"><a href="#profiles">{t.nav.profiles}</a></li>
+        <li class="optional"><a href="#dock">{t.nav.dock}</a></li>
+        <li class="optional"><a href="#widgets">{t.nav.widgets}</a></li>
+        <li><a href={REPO}>{t.nav.github}</a></li>
+        <li><a class="button" href={RELEASES}>{t.nav.download}</a></li>
+      </ul>
+    </nav>
+    <div class="wrap intro" id="top">
+      <h1><span>{first}</span><span class="dim">{middle}</span><span>{last}</span></h1>
+      <div class="side">
+        <p class="lead">{t.hero.lead}</p>
+        <p class="actions">
+          <a class="button" href={RELEASES}>{t.hero.download} ↓</a>
+          <a class="button ghost" href="#install">{t.hero.install}</a>
+        </p>
+      </div>
+    </div>
+    <div class="stage">
+      <p class="hint">↓ {t.hero.hint}</p>
+      <Dock />
+    </div>
+  </header>
+
+  <ul class="specs" aria-label="At a glance">
+    {t.specs.map((spec) => <li>{spec}</li>)}
+  </ul>
+
   <main>
-    <h1>Dockry</h1>
-    <p>{t.description}</p>
-    <Dock />
+    <section class="band paper" id="profiles">
+      <div class="wrap two">
+        <div>
+          <p class="label">{t.profiles.label}</p>
+          <h2>{t.profiles.title}</h2>
+          <p class="lead">{t.profiles.lead}</p>
+          <dl>
+            {t.profiles.items.map(([key, text]) => (<div><dt>{key}</dt><dd>{text}</dd></div>))}
+          </dl>
+        </div>
+        <Image class="shot" src={switcher} alt="The profile switcher over the desktop" widths={[640, 1100]} sizes="(min-width: 1000px) 560px, 100vw" />
+      </div>
+    </section>
+
+    <section class="band ink" id="dock">
+      <div class="wrap">
+        <p class="label">{t.dock.label}</p>
+        <h2>{t.dock.title}</h2>
+        <p class="lead">{t.dock.lead}</p>
+        <ol class="grid">
+          {t.dock.items.map(([title, text], index) => (<li><span>{String(index + 1).padStart(2, '0')}</span><h3>{title}</h3><p>{text}</p></li>))}
+        </ol>
+        <Image class="shot wide" src={magnification} alt="Dockry magnifying the icons under the pointer" widths={[800, 1400]} sizes="(min-width: 1240px) 1200px, 100vw" />
+      </div>
+    </section>
+
+    <section class="band color" id="widgets">
+      <div class="wrap two">
+        <div>
+          <p class="label">{t.widgets.label}</p>
+          <h2>{t.widgets.title}</h2>
+          <p class="lead">{t.widgets.lead}</p>
+        </div>
+        <ul class="widgets">
+          {t.widgets.items.map(([name, text]) => (<li><h3>{name}</h3><p>{text}</p></li>))}
+        </ul>
+      </div>
+      <div class="wrap"><Image class="shot wide" src={spotify} alt="The Spotify player opened from the dock, with search results" widths={[800, 1400]} sizes="(min-width: 1240px) 1200px, 100vw" /></div>
+    </section>
+
+    <section class="band paper" id="install">
+      <div class="wrap two">
+        <div>
+          <p class="label">{t.install.label}</p>
+          <h2>{t.install.title}</h2>
+          <p class="lead">{t.install.lead}</p>
+        </div>
+        <div>
+          <ol class="steps">
+            {t.install.steps.map((step) => <li><span set:html={step.replace('{releases}', RELEASES)} /></li>)}
+          </ol>
+          <p class="note">{t.install.terminal}</p>
+          <div class="code"><pre><code>{t.install.command}</code></pre><button type="button" data-copy={t.install.command} data-copied={t.install.copied}>{t.install.copy}</button></div>
+        </div>
+      </div>
+    </section>
   </main>
+
+  <footer class="band ink">
+    <div class="wrap foot">
+      <p class="name">Dockry</p>
+      <p>{t.footer.tagline}</p>
+      <ul>
+        <li><a href={REPO}>{t.footer.source}</a></li>
+        <li><a href={RELEASES}>{t.footer.releases}</a></li>
+        <li><a href={`${REPO}/issues`}>{t.footer.issues}</a></li>
+      </ul>
+    </div>
+  </footer>
 </Base>
 
+<style is:global>
+  :root {
+    --profile: #3563E9;
+    --ink: #101114;
+    --paper: #F3F1EC;
+    --display: 'Bricolage Grotesque', system-ui, sans-serif;
+    --text: 'Inter', system-ui, sans-serif;
+    --max: 1200px;
+  }
+  body { background: var(--paper); color: var(--ink); font: 400 1rem/1.6 var(--text); }
+  a { color: inherit; text-underline-offset: 4px; }
+  :focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+  .wrap { max-width: var(--max); margin: 0 auto; padding-inline: max(16px, 4vw); }
+  @media (min-width: 1300px) { .wrap { padding-inline: 0; } }
+  h2 { font: 800 clamp(2.2rem, 5.5vw, 4.4rem)/0.98 var(--display); letter-spacing: -0.03em; }
+  h3 { font: 600 1.05rem/1.3 var(--text); }
+  .lead { font-size: 1.15rem; max-width: 46ch; margin-top: 22px; opacity: 0.78; }
+  .label { font: 600 0.8rem/1 var(--text); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 22px; display: flex; align-items: center; gap: 10px; }
+  .label::before { content: ''; width: 10px; height: 10px; background: var(--profile); transition: background 400ms; }
+  .button { display: inline-flex; padding: 16px 22px; background: var(--ink); color: #fff; font-weight: 600; text-decoration: none; }
+  .button:hover { background: #fff; color: var(--ink); }
+  .button.ghost { background: transparent; color: inherit; text-decoration: underline; padding-inline: 4px; }
+  .band { padding-block: clamp(72px, 10vw, 140px); }
+  .band.paper { background: var(--paper); }
+  .band.ink { background: var(--ink); color: #fff; }
+  .band.color { background: var(--profile); color: #fff; transition: background 400ms; }
+  .two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(32px, 6vw, 80px); align-items: start; }
+  .shot { width: 100%; box-shadow: 0 30px 80px rgba(0 0 0 / 0.25); }
+  .shot.wide { margin-top: 64px; }
+  @media (max-width: 860px) { .two { grid-template-columns: minmax(0, 1fr); } }
+</style>
+
 <style>
-  main { min-height: 100vh; display: grid; place-content: center; justify-items: center; gap: 24px; padding: 16px; text-align: center; background: var(--profile, #3563E9); color: #fff; font: 400 1rem/1.6 system-ui, sans-serif; }
-  h1 { font-size: 3rem; }
-  p { max-width: 52ch; }
+  .hero { background: var(--profile); color: #fff; transition: background 400ms; overflow: hidden; }
+  nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 22px; }
+  .brand { display: flex; align-items: center; gap: 10px; font: 800 1.3rem/1 var(--display); text-decoration: none; }
+  nav ul { display: flex; align-items: center; gap: 26px; list-style: none; margin: 0; padding: 0; }
+  nav a:not(.button) { text-decoration: none; font-weight: 600; }
+  nav .button { padding: 11px 16px; }
+  .intro { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 48px; align-items: end; padding-block: clamp(36px, 5vw, 72px) 40px; }
+  h1 { font: 800 clamp(3rem, 8.4vw, 7rem)/0.9 var(--display); letter-spacing: -0.045em; }
+  h1 span { display: block; }
+  .dim { color: var(--ink); }
+  .side { display: grid; gap: 26px; }
+  .side .lead { margin: 0; opacity: 0.92; }
+  .actions { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+  .hero .button { background: #fff; color: var(--ink); }
+  .hero .button:hover { background: var(--ink); color: #fff; }
+  .hero .button.ghost { background: none; color: #fff; }
+  .stage {
+    display: grid;
+    justify-items: center;
+    gap: 18px;
+    padding: 40px 16px 32px;
+    background: linear-gradient(transparent, rgba(0 0 0 / 0.22));
+    --dock-bg: rgba(10 12 30 / 0.28);
+  }
+  .hint { font-size: 0.9rem; opacity: 0.85; }
+
+  .specs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 36px; margin: 0; padding: 22px 16px; list-style: none; background: var(--ink); color: #fff; font-weight: 600; font-size: 0.9rem; }
+
+  dl { display: grid; gap: 2px; margin: 40px 0 0; }
+  dl div { display: grid; grid-template-columns: 8.5em minmax(0, 1fr); gap: 16px; padding: 18px 0; border-top: 1px solid rgba(0 0 0 / 0.12); }
+  dt { font: 800 1.15rem/1.3 var(--display); }
+  dd { margin: 0; opacity: 0.78; }
+
+  .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px 32px; margin: 64px 0 0; padding: 0; list-style: none; }
+  .grid span { display: block; font: 800 2.4rem/1 var(--display); color: var(--profile); margin-bottom: 14px; transition: color 400ms; }
+  .grid p { opacity: 0.7; margin-top: 6px; }
+
+  .widgets { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+  .widgets li { padding: 20px 0; border-top: 1px solid rgba(255 255 255 / 0.35); }
+  .widgets h3 { font: 800 1.6rem/1.1 var(--display); }
+  .widgets p { opacity: 0.88; margin-top: 4px; }
+
+  .steps { counter-reset: step; display: grid; gap: 4px; margin: 0 0 28px; padding: 0; list-style: none; }
+  .steps li { counter-increment: step; display: grid; grid-template-columns: 2.4em minmax(0, 1fr); gap: 10px; padding: 16px 18px; background: #fff; }
+  .steps li::before { content: counter(step, decimal-leading-zero); font: 800 1rem/1.6 var(--display); color: var(--profile); transition: color 400ms; }
+  .note { margin-bottom: 12px; opacity: 0.75; }
+  .code { position: relative; background: var(--ink); color: #fff; }
+  pre { margin: 0; padding: 18px 96px 18px 20px; overflow-x: auto; font: 0.88rem/1.7 ui-monospace, 'SF Mono', Menlo, monospace; }
+  .code button { position: absolute; top: 10px; right: 10px; padding: 8px 12px; border: 0; background: var(--profile); color: #fff; font: 600 0.8rem/1 var(--text); cursor: pointer; }
+
+  .foot { display: grid; gap: 8px; }
+  .name { font: 800 clamp(3rem, 9vw, 6rem)/1 var(--display); letter-spacing: -0.04em; }
+  .foot ul { display: flex; gap: 24px; list-style: none; padding: 0; margin: 18px 0 0; }
+
+  @media (max-width: 860px) {
+    .intro { grid-template-columns: minmax(0, 1fr); }
+    .grid { grid-template-columns: minmax(0, 1fr); }
+    .optional { display: none; }
+  }
+  @media (max-width: 480px) {
+    nav ul { gap: 14px; }
+    dl div { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  }
 </style>
