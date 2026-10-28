@@ -1,21 +1,221 @@
 ---
-// A placeholder until a design is merged: each design's pull request replaces this page.
+// Option 3, "Blueprint": Dockry as a spec sheet. Navy grid paper, the dock drawn with
+// dimension lines, numbered sections like a technical drawing. Space Grotesk and JetBrains
+// Mono, sharp corners, no card borders.
+import '@fontsource/space-grotesk/latin-500';
+import '@fontsource/space-grotesk/latin-700';
+import '@fontsource/jetbrains-mono/latin-400';
+import '@fontsource/jetbrains-mono/latin-600';
+import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import Dock from '../components/Dock.astro';
+import icon from '../assets/icon.png';
+import chill from '../assets/2-chill-profile.png';
+import settings from '../assets/8-settings-profiles.png';
+import { REPO, RELEASES } from '../config';
 import { useTranslations } from '../i18n';
 
 const t = useTranslations(Astro.currentLocale);
+const [first, middle, last] = t.hero.headline;
 ---
-<Base themeColor="#3563E9" colorScheme="dark">
-  <main>
-    <h1>Dockry</h1>
-    <p>{t.description}</p>
-    <Dock />
+<Base themeColor="#0b1530" colorScheme="dark">
+  <header class="wrap top">
+    <a class="brand" href="#top"><Image src={icon} alt="" width={28} height={28} /> dockry</a>
+    <nav>
+      <a class="optional" href="#profiles">01 {t.nav.profiles}</a>
+      <a class="optional" href="#dock">02 {t.nav.dock}</a>
+      <a class="optional" href="#widgets">03 {t.nav.widgets}</a>
+      <a href={REPO}>{t.nav.github} ↗</a>
+      <a class="button" href={RELEASES}>{t.nav.download}</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="wrap hero">
+      <p class="tag">fig. 0 — dockry, a dock for macOS</p>
+      <h1>{first} <em>{middle}</em><br />{last}</h1>
+      <p class="lead">{t.hero.lead}</p>
+      <p class="actions">
+        <a class="button" href={RELEASES}>{t.hero.download} ↓</a>
+        <a class="button ghost" href="#install">{t.hero.install}</a>
+      </p>
+
+      <figure class="drawing">
+        <span class="dim width" aria-hidden="true"><span>as long as what’s in it</span></span>
+        <div class="dock-frame">
+          <Dock />
+          <span class="dim height" aria-hidden="true"><span>16–128 pt</span></span>
+        </div>
+        <figcaption>
+          <span><b>A</b> profile button</span>
+          <span><b>B</b> pinned apps · running dots</span>
+          <span><b>C</b> widgets</span>
+          <span class="hint">{t.hero.hint}</span>
+        </figcaption>
+      </figure>
+    </section>
+
+    <ul class="wrap specs">
+      {t.specs.map((spec, i) => <li><span>{String(i + 1).padStart(2, '0')}</span>{spec}</li>)}
+    </ul>
+
+    <section class="wrap sheet" id="profiles">
+      <header><span>01</span><p>{t.profiles.label}</p></header>
+      <div>
+        <h2>{t.profiles.title}</h2>
+        <p class="lead">{t.profiles.lead}</p>
+        <table>
+          <tbody>
+            {t.profiles.items.map(([key, text]) => (<tr><th>{key}</th><td>{text}</td></tr>))}
+          </tbody>
+        </table>
+        <Image class="shot" src={chill} alt="The Chill profile with the Spotify widget" widths={[800, 1400]} sizes="(min-width: 1240px) 900px, 100vw" />
+      </div>
+    </section>
+
+    <section class="wrap sheet" id="dock">
+      <header><span>02</span><p>{t.dock.label}</p></header>
+      <div>
+        <h2>{t.dock.title}</h2>
+        <p class="lead">{t.dock.lead}</p>
+        <ol class="cells">
+          {t.dock.items.map(([title, text], i) => (<li><span>2.{i + 1}</span><h3>{title}</h3><p>{text}</p></li>))}
+        </ol>
+      </div>
+    </section>
+
+    <section class="wrap sheet" id="widgets">
+      <header><span>03</span><p>{t.widgets.label}</p></header>
+      <div>
+        <h2>{t.widgets.title}</h2>
+        <p class="lead">{t.widgets.lead}</p>
+        <table>
+          <tbody>
+            {t.widgets.items.map(([name, text]) => (<tr><th>{name}</th><td>{text}</td></tr>))}
+          </tbody>
+        </table>
+        <Image class="shot" src={settings} alt="The profile editor in Settings" widths={[800, 1400]} sizes="(min-width: 1240px) 900px, 100vw" />
+      </div>
+    </section>
+
+    <section class="wrap sheet" id="install">
+      <header><span>04</span><p>{t.install.label}</p></header>
+      <div>
+        <h2>{t.install.title}</h2>
+        <p class="lead">{t.install.lead}</p>
+        <ol class="steps">
+          {t.install.steps.map((step) => <li><span set:html={step.replace('{releases}', RELEASES)} /></li>)}
+        </ol>
+        <p class="note">{t.install.terminal}</p>
+        <div class="code"><pre><code><span class="prompt">$</span> {t.install.command}</code></pre><button type="button" data-copy={t.install.command} data-copied={t.install.copied}>{t.install.copy}</button></div>
+      </div>
+    </section>
   </main>
+
+  <footer class="wrap">
+    <p>dockry — {t.footer.tagline}</p>
+    <p><a href={REPO}>{t.footer.source}</a> <a href={RELEASES}>{t.footer.releases}</a> <a href={`${REPO}/issues`}>{t.footer.issues}</a></p>
+  </footer>
 </Base>
 
+<style is:global>
+  :root {
+    --profile: #3563E9;
+    --navy: #0b1530;
+    --line: rgba(140 180 255 / 0.14);
+    --cyan: #7fe0ff;
+    --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+    --sans: 'Space Grotesk', system-ui, sans-serif;
+  }
+  body {
+    color: #e6edff;
+    font: 400 0.95rem/1.7 var(--mono);
+    background:
+      linear-gradient(var(--line) 1px, transparent 1px) 0 0 / 24px 24px,
+      linear-gradient(90deg, var(--line) 1px, transparent 1px) 0 0 / 24px 24px,
+      var(--navy);
+  }
+  a { color: inherit; text-underline-offset: 4px; }
+  a:hover { color: var(--cyan); }
+  :focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+</style>
+
 <style>
-  main { min-height: 100vh; display: grid; place-content: center; justify-items: center; gap: 24px; padding: 16px; text-align: center; background: var(--profile, #3563E9); color: #fff; font: 400 1rem/1.6 system-ui, sans-serif; }
-  h1 { font-size: 3rem; }
-  p { max-width: 52ch; }
+  .wrap { max-width: 1200px; margin: 0 auto; padding-inline: max(16px, 4vw); }
+  @media (min-width: 1300px) { .wrap { padding-inline: 0; } }
+
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 22px; }
+  .brand { display: flex; align-items: center; gap: 10px; font: 700 1.2rem/1 var(--sans); text-decoration: none; }
+  .brand span { color: var(--cyan); font: 400 0.8rem/1 var(--mono); }
+  nav { display: flex; align-items: center; gap: 22px; font-size: 0.85rem; }
+  nav a { text-decoration: none; }
+
+  .button { display: inline-block; padding: 12px 18px; background: var(--cyan); color: var(--navy); font-weight: 600; text-decoration: none; }
+  .button:hover { background: #fff; color: var(--navy); }
+  .button.ghost { background: none; color: #e6edff; text-decoration: underline; }
+
+  .hero { padding-block: clamp(48px, 8vw, 100px) 40px; }
+  .tag { color: var(--cyan); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 26px; }
+  h1 { font: 700 clamp(2.8rem, 8vw, 6.6rem)/0.95 var(--sans); letter-spacing: -0.04em; }
+  h1 em { font-style: normal; color: var(--cyan); }
+  .lead { max-width: 54ch; margin-top: 24px; color: #b6c3e6; }
+  .actions { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 30px; }
+
+  .drawing { margin: 72px 0 0; display: grid; justify-items: center; gap: 18px; padding: 56px 16px 28px; border: 1px dashed rgba(127 224 255 / 0.35); }
+  .dock-frame { position: relative; max-width: 100%; --dock-bg: rgba(255 255 255 / 0.08); --dock-edge: rgba(127 224 255 / 0.5); --dock-radius: 0; --dock-shadow: none; }
+  .dim { color: var(--cyan); font-size: 0.75rem; white-space: nowrap; }
+  .width { width: min(640px, 90%); display: flex; align-items: center; gap: 10px; }
+  .width::before, .width::after { content: ''; flex: 1; height: 1px; background: var(--cyan); }
+  .height { position: absolute; left: calc(100% + 14px); top: 0; bottom: 0; display: flex; align-items: center; padding-left: 10px; border-left: 1px solid var(--cyan); }
+  figcaption { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 24px; margin-top: 16px; font-size: 0.8rem; color: #b6c3e6; }
+  figcaption b { color: var(--cyan); }
+  .hint { color: var(--cyan); }
+
+  .specs { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 1px; margin-block: 48px 0; padding-block: 0; list-style: none; }
+  .specs li { padding: 16px; background: rgba(255 255 255 / 0.04); font-size: 0.8rem; }
+  .specs span { display: block; color: var(--cyan); font-size: 0.7rem; margin-bottom: 4px; }
+
+  .sheet { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 32px; padding-block: clamp(64px, 9vw, 120px) 0; scroll-margin-top: 20px; }
+  .sheet > header { border-top: 2px solid var(--cyan); padding-top: 14px; }
+  .sheet > header span { font: 700 3rem/1 var(--sans); color: var(--cyan); }
+  .sheet > header p { margin-top: 8px; text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.8rem; }
+  h2 { font: 700 clamp(2rem, 4.6vw, 3.6rem)/1 var(--sans); letter-spacing: -0.03em; }
+  h3 { font: 600 0.95rem/1.4 var(--mono); }
+
+  table { width: 100%; margin-top: 36px; border-collapse: collapse; }
+  th, td { padding: 14px 0; border-top: 1px solid rgba(127 224 255 / 0.25); text-align: left; vertical-align: top; }
+  th { width: 11em; padding-right: 20px; color: var(--cyan); font-weight: 600; }
+  td { color: #b6c3e6; }
+  .shot { margin-top: 40px; outline: 1px solid rgba(127 224 255 / 0.35); outline-offset: 10px; }
+
+  .cells { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; margin: 40px 0 0; padding: 0; list-style: none; }
+  .cells li { padding: 22px; background: rgba(255 255 255 / 0.04); }
+  .cells span { color: var(--cyan); font-size: 0.75rem; }
+  .cells h3 { margin: 8px 0 6px; font: 700 1.15rem/1.3 var(--sans); }
+  .cells p { color: #b6c3e6; font-size: 0.85rem; }
+
+  .steps { counter-reset: step; display: grid; gap: 1px; margin: 36px 0 24px; padding: 0; list-style: none; }
+  .steps li { counter-increment: step; display: grid; grid-template-columns: 3em minmax(0, 1fr); padding: 14px 18px; background: rgba(255 255 255 / 0.04); color: #b6c3e6; }
+  .steps li::before { content: '[' counter(step) ']'; color: var(--cyan); }
+  .steps :global(strong), .steps :global(code) { color: #fff; }
+  .note { color: #b6c3e6; margin-bottom: 10px; }
+  .code { position: relative; background: #050b1d; outline: 1px solid rgba(127 224 255 / 0.35); }
+  pre { margin: 0; padding: 18px 96px 18px 18px; overflow-x: auto; font-size: 0.85rem; }
+  .prompt { color: var(--cyan); }
+  .code button { position: absolute; top: 10px; right: 10px; padding: 7px 12px; border: 0; background: var(--cyan); color: var(--navy); font: 600 0.78rem/1 var(--mono); cursor: pointer; }
+
+  footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin-top: 120px; padding-block: 28px 40px; border-top: 1px solid rgba(127 224 255 / 0.25); font-size: 0.8rem; color: #b6c3e6; }
+  footer a { margin-left: 18px; }
+
+  @media (max-width: 900px) {
+    .specs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .sheet { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+    .cells { grid-template-columns: minmax(0, 1fr); }
+    .optional { display: none; }
+    .height { display: none; }
+  }
+  @media (max-width: 480px) {
+    th { width: 7.5em; }
+    footer a { margin: 0 14px 0 0; }
+  }
 </style>
