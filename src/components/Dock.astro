@@ -1,0 +1,223 @@
+---
+// A working miniature of Dockry: the profile button, the profile's apps, a separator and its
+// widgets. Hovering magnifies the icons like the real dock; the profile button switches
+// between the profiles and tells the page (a `dockry:profile` event with the color), so a
+// design can recolor itself. Every profile is rendered up front, so it works without
+// JavaScript and in screenshots.
+//
+// Designs restyle it through custom properties on any ancestor: --icon (icon size),
+// --dock-bg, --dock-edge, --dock-radius, --tile-radius, --dock-shadow, --dock-text.
+import { useTranslations } from '../i18n';
+
+const t = useTranslations(Astro.currentLocale);
+const { class: className = '' } = Astro.props as { class?: string };
+
+// Simple line glyphs on a colored tile, instead of Apple's own app icons.
+const apps: Record<string, { color: string; path: string }> = {
+  Finder: { color: '#2F8CF0', path: 'M4 4h16v16H4z M12 4v16 M8 9v1.5 M16 9v1.5 M8 15c2.2 2 5.8 2 8 0' },
+  Browser: { color: '#16A3E8', path: 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18z M15.5 8.5l-2 5-5 2 2-5z' },
+  Mail: { color: '#3B7BF6', path: 'M3 6h18v12H3z M3 6.5l9 6.5 9-6.5' },
+  Calendar: { color: '#F2453D', path: 'M4 6h16v14H4z M4 10.5h16 M8.5 3.5v4 M15.5 3.5v4' },
+  Notes: { color: '#E8B21C', path: 'M6 3h12v18H6z M9 8h6 M9 12h6 M9 16h4' },
+  Terminal: { color: '#30343F', path: 'M3 5h18v14H3z M7 10l3 2-3 2 M12.5 15h4.5' },
+  Music: { color: '#F2405E', path: 'M9 17.5V6.5l10-2.5v11 M9 17.5a2.5 2.5 0 1 1-5 0a2.5 2.5 0 1 1 5 0z M19 15a2.5 2.5 0 1 1-5 0a2.5 2.5 0 1 1 5 0z' },
+  Photos: { color: '#A35BF0', path: 'M12 9a3 3 0 1 0 0 6a3 3 0 1 0 0-6z M12 3v3.5 M12 17.5V21 M3 12h3.5 M17.5 12H21 M5.6 5.6l2.5 2.5 M15.9 15.9l2.5 2.5 M5.6 18.4l2.5-2.5 M15.9 8.1l2.5-2.5' },
+  Messages: { color: '#2DBE5A', path: 'M4 5h16v11H9.5L4 20z' },
+  TV: { color: '#1C1D22', path: 'M3 6h18v11H3z M8 20h8' },
+};
+// Apps shown with the running dot, as if open.
+const running = new Set(['Finder', 'Browser', 'Terminal', 'Music', 'Messages']);
+const profileSymbols: Record<string, string> = {
+  Work: 'M4 8h16v11H4z M9 8V5h6v3 M4 13h16',
+  Chill: 'M5 9h11v5a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5z M16 10h1.5a2.5 2.5 0 0 1 0 5H16 M8 3.5v2.5 M11 3.5v2.5',
+};
+const now = new Date();
+const time = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+const month = now.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+const day = now.getDate();
+---
+<div class={`dock ${className}`} data-dock>
+  {t.demo.profiles.map((profile, index) => (
+    <div class="shelf" data-profile={profile.name} data-color={profile.color} hidden={index !== 0}>
+      <button class="item profile" type="button" data-next aria-label={`${t.demo.profileHint}: ${profile.name}`} title={t.demo.profileHint} style={`--tint: ${profile.color}`}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d={profileSymbols[profile.name]} /></svg>
+        <span>{profile.name}</span>
+      </button>
+      <i class="separator" aria-hidden="true"></i>
+      {profile.apps.map((name) => (
+        <span class="item app" data-magnify data-name={name} style={`--tint: ${apps[name].color}`}>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d={apps[name].path} /></svg>
+          {running.has(name) && <i class="dot" aria-hidden="true"></i>}
+          <span class="name">{name}</span>
+        </span>
+      ))}
+      <i class="separator" aria-hidden="true"></i>
+      {profile.widgets.map((widget) => (
+        widget === 'clock' ? <span class="item widget clock" data-clock>{time}</span>
+        : widget === 'date' ? <span class="item widget date"><small>{month}</small>{day}</span>
+        : widget === 'claude' ? (
+          <span class="item widget claude wide-only">
+            <small>Claude</small>
+            <span class="bar"><b style="width: 34%"></b></span>
+            <span class="bar"><b style="width: 72%"></b></span>
+          </span>
+        ) : (
+          <span class="item widget spotify">
+            <span class="art" aria-hidden="true"></span>
+            <span class="song wide-only"><b>{t.demo.song[0]}</b><small>{t.demo.song[1]}</small></span>
+          </span>
+        )
+      ))}
+    </div>
+  ))}
+</div>
+
+<script>
+  const reach = 3;  // icons grow up to this many icon widths from the pointer
+  const largest = 1.65;
+
+  for (const dock of document.querySelectorAll<HTMLElement>('[data-dock]')) {
+    const shelves = [...dock.querySelectorAll<HTMLElement>('.shelf')];
+    let current = 0;
+
+    const announce = () => {
+      const color = shelves[current].dataset.color!;
+      document.documentElement.style.setProperty('--profile', color);
+      document.dispatchEvent(new CustomEvent('dockry:profile', { detail: { name: shelves[current].dataset.profile, color } }));
+    };
+    announce();
+
+    for (const button of dock.querySelectorAll<HTMLButtonElement>('[data-next]')) {
+      button.addEventListener('click', () => {
+        shelves[current].hidden = true;
+        current = (current + 1) % shelves.length;
+        shelves[current].hidden = false;
+        shelves[current].querySelector<HTMLElement>('[data-next]')?.focus();
+        announce();
+      });
+    }
+
+    // Magnification: each icon's size follows a cosine of its distance from the pointer.
+    const magnify = (x: number | null) => {
+      for (const icon of shelves[current].querySelectorAll<HTMLElement>('[data-magnify]')) {
+        let scale = 1;
+        if (x !== null) {
+          const box = icon.getBoundingClientRect();
+          const size = box.height;
+          const distance = Math.abs(x - (box.left + box.width / 2)) / (size * reach);
+          scale = distance < 1 ? 1 + (largest - 1) * Math.cos((distance * Math.PI) / 2) : 1;
+        }
+        icon.style.setProperty('--s', scale.toFixed(3));
+      }
+    };
+    if (matchMedia('(hover: hover) and (prefers-reduced-motion: no-preference)').matches) {
+      dock.addEventListener('pointermove', (e) => magnify(e.clientX));
+      dock.addEventListener('pointerleave', () => magnify(null));
+    }
+
+    const clock = () => {
+      const time = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      dock.querySelectorAll('[data-clock]').forEach((el) => (el.textContent = time));
+    };
+    clock();
+    setInterval(clock, 30_000);
+  }
+</script>
+
+<style>
+  .dock {
+    --icon: clamp(30px, 7.4vw, 52px);
+    display: flex;
+    justify-content: center;
+    max-width: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
+  }
+  .shelf {
+    --gap: calc(var(--icon) * 0.14);
+    display: flex;
+    align-items: flex-end;
+    gap: var(--gap);
+    padding: calc(var(--icon) * 0.2) calc(var(--icon) * 0.22) calc(var(--icon) * 0.26);
+    background: var(--dock-bg, rgba(255 255 255 / 0.16));
+    backdrop-filter: blur(24px) saturate(1.6);
+    -webkit-backdrop-filter: blur(24px) saturate(1.6);
+    border-radius: var(--dock-radius, calc(var(--icon) * 0.42));
+    box-shadow: var(--dock-shadow, 0 10px 40px rgba(0 0 0 / 0.25)), inset 0 0 0 1px var(--dock-edge, rgba(255 255 255 / 0.22));
+    color: var(--dock-text, #fff);
+    max-width: 100%;
+  }
+  .shelf[hidden] { display: none; }
+
+  .item {
+    --s: 1;
+    position: relative;
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: calc(var(--icon) * var(--s));
+    height: calc(var(--icon) * var(--s));
+    border-radius: var(--tile-radius, 22%);
+    transition: width 90ms ease-out, height 90ms ease-out;
+  }
+  .app { background: linear-gradient(160deg, color-mix(in srgb, var(--tint), white 18%), var(--tint)); box-shadow: 0 2px 6px rgba(0 0 0 / 0.18); }
+  .app svg, .profile svg { width: 56%; height: 56%; fill: none; stroke: #fff; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .dot { position: absolute; bottom: calc(var(--icon) * -0.17); width: 4px; height: 4px; border-radius: 50%; background: currentColor; opacity: 0.8; }
+
+  .name {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    padding: 3px 10px;
+    border-radius: 999px;
+    font: 500 13px/1.3 -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
+    white-space: nowrap;
+    background: rgba(28 28 32 / 0.92);
+    color: #fff;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 120ms;
+  }
+  .app:hover .name { opacity: 1; }
+
+  .profile {
+    width: calc(var(--icon) * 1.18);
+    height: var(--icon);
+    gap: 1px;
+    align-content: center;
+    border: 0;
+    cursor: pointer;
+    background: linear-gradient(160deg, color-mix(in srgb, var(--tint), white 15%), var(--tint));
+    color: #fff;
+    font: 600 calc(var(--icon) * 0.2) / 1 -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
+  }
+  .profile svg { width: 42%; height: 42%; }
+  .profile:hover { filter: brightness(1.08); }
+  /* So it still stands out on a page in the same color. */
+  .profile { box-shadow: inset 0 0 0 1.5px rgba(255 255 255 / 0.5), 0 2px 6px rgba(0 0 0 / 0.18); }
+
+  .separator { flex: none; align-self: center; width: 1px; height: calc(var(--icon) * 0.8); background: currentColor; opacity: 0.3; }
+
+  .widget {
+    height: var(--icon);
+    width: auto;
+    min-width: var(--icon);
+    padding-inline: calc(var(--icon) * 0.18);
+    background: var(--widget-bg, rgba(255 255 255 / 0.14));
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .clock { font-size: calc(var(--icon) * 0.3); }
+  .date { width: var(--icon); padding: 0; align-content: center; gap: 0; font-size: calc(var(--icon) * 0.42); line-height: 1; font-weight: 500; }
+  .date small { font-size: calc(var(--icon) * 0.18); font-weight: 700; color: #ff5a4f; }
+  .claude { grid-template-columns: 1fr; align-content: center; justify-items: start; gap: calc(var(--icon) * 0.08); width: calc(var(--icon) * 2.3); }
+  .claude small { font-size: calc(var(--icon) * 0.2); opacity: 0.7; }
+  .bar { width: 100%; height: 5px; border-radius: 3px; background: rgba(255 255 255 / 0.2); }
+  .bar b { display: block; height: 100%; border-radius: 3px; background: #D97757; }
+  .spotify { display: flex; gap: calc(var(--icon) * 0.16); }
+  .art { width: calc(var(--icon) * 0.72); height: calc(var(--icon) * 0.72); border-radius: 18%; background: radial-gradient(circle at 50% 46%, #ffbe5a 0 30%, transparent 31%), linear-gradient(160deg, #3a2a8a, #e2557a); }
+  .song { display: grid; text-align: left; font-size: calc(var(--icon) * 0.24); line-height: 1.25; }
+  .song small { font-weight: 400; opacity: 0.7; }
+
+  @media (max-width: 560px) {
+    .wide-only { display: none; }
+  }
+</style>

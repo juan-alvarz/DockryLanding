@@ -1,0 +1,58 @@
+---
+import { useTranslations } from '../i18n';
+
+// The page shell every design option uses. Each option brings its own fonts and styles.
+interface Props {
+  title?: string;
+  themeColor: string;
+  colorScheme: 'light' | 'dark';
+}
+const { title, themeColor, colorScheme } = Astro.props;
+const t = useTranslations(Astro.currentLocale);
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+<!doctype html>
+<html lang={t.htmlLang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title ?? t.title}</title>
+    <meta name="description" content={t.description} />
+    <meta name="color-scheme" content={colorScheme} />
+    <meta name="theme-color" content={themeColor} />
+    <meta property="og:title" content={t.title} />
+    <meta property="og:description" content={t.description} />
+    <meta property="og:type" content="website" />
+    <link rel="icon" type="image/svg+xml" href={`${base}/icon.svg`} />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
+
+<script>
+  // Copy buttons: <button data-copy="text">. The label switches to data-copied for a moment.
+  for (const button of document.querySelectorAll<HTMLButtonElement>('[data-copy]')) {
+    const label = button.textContent;
+    button.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(button.dataset.copy!);
+        button.textContent = button.dataset.copied ?? label;
+        setTimeout(() => (button.textContent = label), 1600);
+      } catch {
+        // Clipboard not allowed here: select the text so it can be copied by hand.
+        if (button.previousElementSibling) getSelection()?.selectAllChildren(button.previousElementSibling);
+      }
+    });
+  }
+</script>
+
+<style is:global>
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+  body { margin: 0; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  img { max-width: 100%; height: auto; display: block; }
+  h1, h2, h3, p { margin: 0; }
+  h1, h2 { text-wrap: balance; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
