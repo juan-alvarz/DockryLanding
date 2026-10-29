@@ -41,7 +41,7 @@ export const en = {
         name: 'Chill',
         color: '#F08A4B',
         apps: ['Finder', 'Music', 'Photos', 'Messages', 'TV'],
-        widgets: ['spotify', 'clock'],
+        widgets: ['spotify', 'clock', 'date'],
       },
     ],
     song: ['Midnight City', 'M83'],

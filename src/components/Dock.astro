@@ -120,10 +120,6 @@ const day = now.getDate();
         current = (current + 1) % shelves.length;
         shelves[current].hidden = false;
         shelves[current].querySelector<HTMLElement>('[data-next]')?.focus();
-        // The shelves only turn invisible (see .shelf[hidden]), so the pop has to be restarted by hand.
-        for (const animation of shelves[current].getAnimations({ subtree: true })) {
-          if (animation instanceof CSSAnimation) { animation.cancel(); animation.play(); }
-        }
         if (pointer !== null) magnify(pointer);
         announce();
       });
@@ -139,11 +135,9 @@ const day = now.getDate();
 </script>
 
 <style>
-  /* Every profile's shelf sits in the same grid cell, so they all take the widest one's width
-     and switching doesn't make the dock jump. A shorter profile is centered in it. */
   .dock {
     --icon: clamp(30px, 7.4vw, 52px);
-    display: grid;
+    display: flex;
     justify-content: center;
     max-width: 100%;
     font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
@@ -152,10 +146,8 @@ const day = now.getDate();
   }
   .shelf {
     --gap: calc(var(--icon) * 0.14);
-    grid-area: 1 / 1;
     display: flex;
     align-items: flex-end;
-    justify-content: center;
     gap: var(--gap);
     padding: calc(var(--icon) * 0.2) calc(var(--icon) * 0.22) calc(var(--icon) * 0.26);
     /* A fixed height: magnified icons grow out of the top, like the real dock, instead of pushing the page. */
@@ -168,7 +160,7 @@ const day = now.getDate();
     color: var(--dock-text, #fff);
     max-width: 100%;
   }
-  .shelf[hidden] { display: flex; visibility: hidden; }
+  .shelf[hidden] { display: none; }
 
   .item {
     --s: 1;
