@@ -1,21 +1,433 @@
 ---
-// A placeholder until a design is merged: each design's pull request replaces this page.
+// Option 5, "Cobalt": Shortty's landing page, made for Dockry. Full-width color bands (cobalt,
+// ink, paper), sharp corners, an orange accent square for labels, and a sticky nav that marks
+// the section on screen. Instrument Serif and JetBrains Mono.
+import '@fontsource/instrument-serif/latin-400';
+import '@fontsource/jetbrains-mono/latin-400';
+import '@fontsource/jetbrains-mono/latin-500';
+import '@fontsource/jetbrains-mono/latin-600';
+import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import Dock from '../components/Dock.astro';
+import icon from '../assets/icon.png';
+import work from '../assets/1-work-profile.png';
+import switcher from '../assets/3-profile-switcher.png';
+import settings from '../assets/8-settings-profiles.png';
+import arrange from '../assets/11-drag-to-reorder.png';
+import calendar from '../assets/9-calendar.png';
+import magnification from '../assets/5-magnification.png';
+import left from '../assets/6-left-position.png';
+import spotify from '../assets/10-spotify-player.png';
+import { REPO, RELEASES } from '../config';
 import { useTranslations } from '../i18n';
 
 const t = useTranslations(Astro.currentLocale);
+const [first, middle, last] = t.hero.headline;
+// Features, not profiles: Work and Chill are only examples the user makes for themselves.
+const tabs = [
+  { name: 'Switcher', image: switcher, alt: 'The profile switcher over the desktop', text: 'The profile switcher, like ⌘Tab for your profiles, on a shortcut you choose.' },
+  { name: 'Arrange', image: arrange, alt: 'An app being dragged along Dockry while the other icons make room', text: 'Drag apps, widgets and dividers into any order; the others make room.' },
+  { name: 'Edit Profiles', image: settings, alt: 'Dockry’s profile editor with a profile’s apps and widgets', text: 'Pinned apps, widgets, symbol, color and desktop for each profile.' },
+  { name: 'Calendar', image: calendar, alt: 'The month calendar opened from Dockry’s date widget', text: 'Widgets open what you need: the date widget shows the whole month.' },
+];
 ---
-<Base themeColor="#3563E9" colorScheme="dark">
+<Base themeColor="#2b3bf0" colorScheme="dark">
+  <!-- Sticky: stays at the top while scrolling and marks the section on screen (see the script below). -->
+  <div class="navbar" data-navbar>
+    <nav class="wrap" aria-label="Main">
+      <a class="brand" href="#top" aria-label="Dockry">
+        <Image src={icon} alt="" width={36} height={36} />
+        <span>dockry</span>
+        <span class="where" data-where aria-hidden="true"></span>
+      </a>
+      <ul>
+        <li class="optional"><a href="#profiles" data-nav>{t.nav.profiles}</a></li>
+        <li class="optional"><a href="#dock" data-nav>{t.nav.dock}</a></li>
+        <li class="optional"><a href="#widgets" data-nav>{t.nav.widgets}</a></li>
+        <li class="optional"><a href="#install" data-nav>{t.nav.install}</a></li>
+        <li class="github"><a href={REPO}>{t.nav.github}</a></li>
+        <li><a class="button" href={RELEASES}>{t.nav.download}</a></li>
+      </ul>
+    </nav>
+  </div>
+
+  <header class="hero" id="top">
+    <div class="wrap intro">
+      <h1>
+        <span>{first}</span>
+        <span class="mode">{middle}<i aria-hidden="true"></i></span>
+        <span>{last}</span>
+      </h1>
+      <div class="side">
+        <p class="lead">{t.hero.lead}</p>
+        <p class="actions">
+          <a class="button" href={RELEASES}>{t.hero.download} ↓</a>
+          <a class="button ghost" href="#install">{t.hero.install}</a>
+        </p>
+      </div>
+    </div>
+
+    <figure class="stage">
+      <Dock />
+      <figcaption>+ {t.hero.hint}</figcaption>
+    </figure>
+
+    <figure class="shot wrap">
+      <Image src={work} alt={t.hero.shotAlt} widths={[640, 1024]} sizes="(min-width: 1060px) 1024px, 100vw" loading="eager" />
+    </figure>
+  </header>
+
   <main>
-    <h1>Dockry</h1>
-    <p>{t.description}</p>
-    <Dock />
+    <div class="specs">
+      <ul class="wrap">
+        {t.specs.map((spec) => <li>{spec}</li>)}
+      </ul>
+    </div>
+
+    <section class="band light" id="profiles">
+      <div class="wrap grid">
+        <div class="sticky">
+          <span class="label">{t.profiles.label}</span>
+          <h2>{t.profiles.title}</h2>
+          <p class="lead">{t.profiles.lead}</p>
+        </div>
+        <dl class="rows">
+          {t.profiles.items.map(([key, text]) => (<div><dt>{key}</dt><dd>{text}</dd></div>))}
+        </dl>
+      </div>
+
+      <!-- Tabs without JavaScript: each radio button shows the panel with the same index. -->
+      <div class="wrap tabs">
+        <div class="tablist">
+          {tabs.map(({ name }, i) => (
+            <label>
+              <input type="radio" name="profile-shot" value={i} checked={i === 0} />
+              <span>{name}</span>
+            </label>
+          ))}
+        </div>
+        {tabs.map(({ image, alt, text }, i) => (
+          <figure class="panel" data-index={i}>
+            <Image src={image} alt={alt} widths={[640, 1024]} sizes="(min-width: 1060px) 1024px, 100vw" />
+            <figcaption>{text}</figcaption>
+          </figure>
+        ))}
+      </div>
+    </section>
+
+    <section class="band dark" id="dock">
+      <div class="wrap">
+        <span class="label">{t.dock.label}</span>
+        <h2>{t.dock.title}</h2>
+        <p class="lead">{t.dock.lead}</p>
+        <ul class="tiles">
+          {t.dock.items.map(([title, text]) => (<li><h3>{title}</h3><p>{text}</p></li>))}
+        </ul>
+        <div class="pair">
+          <figure>
+            <Image src={magnification} alt="Icons in Dockry growing around the pointer" widths={[640, 1024]} sizes="(min-width: 900px) 585px, 100vw" />
+            <figcaption>Magnification, as in the Dock.</figcaption>
+          </figure>
+          <figure>
+            <Image src={left} alt="Dockry on the left edge of the screen, with compact widget tiles" widths={[640, 1024]} sizes="(min-width: 900px) 585px, 100vw" />
+            <figcaption>On the left, widgets turn into compact tiles.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="band primary" id="widgets">
+      <div class="wrap">
+        <span class="label">{t.widgets.label}</span>
+        <h2>{t.widgets.title}</h2>
+        <p class="lead">{t.widgets.lead}</p>
+        <ul class="columns">
+          {t.widgets.items.map(([name, text]) => (<li><h3>{name}</h3><p>{text}</p></li>))}
+        </ul>
+        <figure class="wide">
+          <Image src={spotify} alt="The Spotify player opened from the dock, with search results" widths={[640, 1024]} sizes="(min-width: 1060px) 1024px, 100vw" />
+          <figcaption>The Spotify player and search, without leaving what you’re doing.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="band dark" id="install">
+      <div class="wrap">
+        <span class="label">{t.install.label}</span>
+        <h2>{t.install.title}</h2>
+        <p class="lead">{t.install.lead}</p>
+        <div class="install">
+          <ol class="steps">
+            {t.install.steps.map((step) => <li><span set:html={step.replace('{releases}', RELEASES)} /></li>)}
+          </ol>
+          <div>
+            <p class="note">{t.install.terminal}</p>
+            <div class="code"><pre><code>{t.install.command}</code></pre><button type="button" data-copy={t.install.command} data-copied={t.install.copied}>{t.install.copy}</button></div>
+            <a class="button" href={RELEASES}>{t.hero.download} ↓</a>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
+
+  <footer class="band primary">
+    <div class="wrap foot">
+      <Image src={icon} alt="" width={96} height={96} />
+      <div>
+        <p class="name">dockry</p>
+        <p>{t.footer.tagline}</p>
+        <ul>
+          <li><a href={REPO}>{t.footer.source}</a></li>
+          <li><a href={RELEASES}>{t.footer.releases}</a></li>
+          <li><a href={`${REPO}/issues`}>{t.footer.issues}</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
 </Base>
 
+<script>
+  // A sticky nav that follows the section on screen, and a URL that does too (#widgets opens on
+  // Widgets), so any part of the page can be shared. Same as Shortty's landing page.
+  const root = document.documentElement;
+  const navbar = document.querySelector<HTMLElement>('[data-navbar]')!;
+  const where = document.querySelector<HTMLElement>('[data-where]')!;
+  const links = new Map(
+    [...navbar.querySelectorAll<HTMLAnchorElement>('a[data-nav]')].map((a) => [a.hash.slice(1), a]),
+  );
+  const sections = [...document.querySelectorAll<HTMLElement>('main section[id]')];
+
+  // In-page jumps and the sticky column leave room for the nav (--nav-h).
+  const setNavHeight = () => root.style.setProperty('--nav-h', `${navbar.offsetHeight}px`);
+  setNavHeight();
+  new ResizeObserver(setNavHeight).observe(navbar);
+
+  // Keyboard and screen reader users continue from the section they jumped to.
+  document.addEventListener('click', (e) => {
+    const link = (e.target as Element).closest<HTMLAnchorElement>('a[href^="#"]');
+    const target = link && document.getElementById(decodeURIComponent(link.hash.slice(1)));
+    if (!target) return;
+    if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+    target.focus({ preventScroll: true });
+  });
+
+  let current: string | null = location.hash.slice(1) || null;
+
+  function update(writeUrl: boolean) {
+    navbar.toggleAttribute('data-scrolled', scrollY > 8);
+
+    // The section on screen is the last one whose top has passed a line a third of the way down.
+    const line = innerHeight / 3;
+    let id: string | null = null;
+    for (const section of sections) if (section.getBoundingClientRect().top <= line) id = section.id;
+    // At the very bottom, the last section counts even if it is too short to reach the line.
+    if (scrollY + innerHeight >= root.scrollHeight - 2) id = sections.at(-1)!.id;
+
+    for (const [key, a] of links) {
+      if (key === id) a.setAttribute('aria-current', 'location');
+      else a.removeAttribute('aria-current');
+    }
+    where.textContent = (id && links.get(id)?.textContent) || '';
+
+    if (!writeUrl || id === current) return;
+    current = id;
+    history.replaceState(history.state, '', id ? `#${id}` : location.pathname + location.search);
+  }
+
+  // The first pass only paints the nav: the browser may not have jumped to a shared #section yet.
+  update(false);
+  let queued = false;
+  addEventListener('scroll', () => {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => { queued = false; update(true); });
+  }, { passive: true });
+</script>
+
+<style is:global>
+  :root {
+    /* Color, named by role. Here: primary = cobalt, dark = ink, light = paper, accent = Chill orange. */
+    --primary: #2b3bf0;
+    --dark: #0b0d1c;
+    --dark-raised: #161a36;
+    --light: #eceef5;
+    --light-raised: #dfe2ee;
+    --accent: #ff7a3d;
+    --white: #ffffff;
+    --on-primary-muted: #c6cbff;
+    --on-dark-muted: #8f96c4;
+    --on-light-muted: #525877;
+
+    --display: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
+    --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    --step-0: 0.92rem;
+    --step-1: 1.1rem;
+    --step-2: clamp(1.6rem, 3vw, 2.1rem);
+    --step-3: clamp(2.6rem, 6.4vw, 4.6rem);
+    --step-4: clamp(3rem, 7.4vw, 6.6rem);
+  }
+
+  html { scroll-padding-top: var(--nav-h, 76px); }
+  body { background: var(--dark); color: var(--white); font: 400 var(--step-0)/1.65 var(--mono); }
+  a { color: inherit; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+  a:hover { color: var(--accent); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  section[tabindex='-1']:focus, header[tabindex='-1']:focus { outline: none; }
+  h2 { font: 400 var(--step-3)/1 var(--display); letter-spacing: -0.015em; }
+  h3 { font: 600 var(--step-0)/1.3 var(--mono); }
+  figure { margin: 0; }
+  figcaption { margin-top: 14px; max-width: 1024px; margin-inline: auto; font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; }
+  code { font-family: var(--mono); }
+
+  .wrap { max-width: 1200px; margin-inline: auto; padding-inline: max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px)); }
+
+  /* A full-width color band. */
+  .band { padding-block: clamp(72px, 10vw, 140px); }
+  .band.primary { background: var(--primary); color: var(--white); }
+  .band.light { background: var(--light); color: var(--dark); }
+  .band.dark { background: var(--dark); color: var(--white); }
+
+  /* Section eyebrow: the accent square and an uppercase mono word. */
+  .label { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 28px; font: 500 0.78rem/1 var(--mono); letter-spacing: 0.16em; text-transform: uppercase; }
+  .label::before { content: ''; width: 8px; height: 8px; background: var(--accent); }
+
+  .lead { font-size: var(--step-1); max-width: 52ch; margin-top: 24px; }
+  .light .lead, .light figcaption { color: var(--on-light-muted); }
+  .dark .lead, .dark figcaption { color: var(--on-dark-muted); }
+  .primary .lead, .primary figcaption { color: var(--on-primary-muted); }
+
+  .button { display: inline-flex; align-items: center; gap: 10px; padding: 16px 24px; font: 600 var(--step-0)/1 var(--mono); text-decoration: none; background: var(--accent); color: var(--dark); }
+  .button:hover { background: var(--white); color: var(--dark); }
+  .button.ghost { background: transparent; color: inherit; padding-inline: 4px; text-decoration: underline; }
+  .button.ghost:hover { color: var(--accent); }
+</style>
+
 <style>
-  main { min-height: 100vh; display: grid; place-content: center; justify-items: center; gap: 24px; padding: 16px; text-align: center; background: var(--profile, #3563E9); color: #fff; font: 400 1rem/1.6 system-ui, sans-serif; }
-  h1 { font-size: 3rem; }
-  p { max-width: 52ch; }
+  /* Nav */
+  .navbar { position: sticky; top: 0; z-index: 50; background: var(--primary); color: var(--white); transition: box-shadow 0.2s; }
+  .navbar[data-scrolled] { box-shadow: 0 12px 32px -18px rgb(0 0 0 / 0.55); }
+  nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 20px; }
+  .brand { display: flex; align-items: center; gap: 10px; font: 600 1.05rem/1 var(--mono); text-decoration: none; }
+  .brand img { width: 36px; height: 36px; }
+  .where { display: none; color: var(--on-primary-muted); font-weight: 500; }
+  .where:not(:empty)::before { content: '/ '; }
+  nav ul { display: flex; align-items: center; gap: 28px; list-style: none; margin: 0; padding: 0; }
+  nav ul a:not(.button) { position: relative; text-decoration: none; }
+  nav ul a:not(.button):hover { color: var(--dark); }
+  /* The section on screen gets the label's accent square. */
+  nav ul a[aria-current]::before { content: ''; position: absolute; left: -14px; top: calc(50% - 3px); width: 7px; height: 7px; background: var(--accent); }
+  nav .button { padding: 12px 18px; }
+  nav .button:hover { background: var(--dark); color: var(--white); }
+
+  /* Hero: cobalt down to the middle of the screenshot, then ink. */
+  .hero { background: linear-gradient(var(--primary) 0 72%, var(--dark) 72%); color: var(--white); }
+  .intro { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); align-items: end; gap: 48px; padding-block: clamp(48px, 7vw, 96px) clamp(24px, 3vw, 40px); }
+  h1 { font: 400 var(--step-4)/0.92 var(--display); letter-spacing: -0.03em; }
+  h1 > span { display: block; width: fit-content; }
+  /* The middle line sits in a dock tile, with the dot of a running app. */
+  h1 .mode { position: relative; margin-block: 0.06em 0.16em; padding: 0 0.16em 0.06em; background: rgb(255 255 255 / 0.14); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.25); }
+  h1 .mode i { position: absolute; left: calc(50% - 4px); bottom: -0.14em; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+  .side { display: flex; flex-direction: column; gap: 28px; }
+  .side .lead { margin: 0; color: var(--white); }
+  .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+
+  /* Room above the dock for magnified icons and their names. */
+  .stage { display: grid; justify-items: center; gap: 22px; padding: 56px 16px clamp(48px, 6vw, 72px); }
+  .stage figcaption { margin: 0; color: var(--on-primary-muted); text-transform: none; letter-spacing: 0.04em; }
+  /* The demo dock looks like Dockry in macOS's light appearance: rounded, unlike the rest of the page. */
+  .stage :global(.dock) {
+    --dock-bg: rgb(246 246 249 / 0.88);
+    --dock-edge: rgb(255 255 255 / 0.7);
+    --dock-text: #1d1d1f;
+    --widget-bg: rgb(0 0 0 / 0.06);
+    --dock-shadow: 0 24px 60px -16px rgb(4 8 60 / 0.55);
+  }
+
+  .shot { padding-bottom: clamp(48px, 7vw, 96px); }
+  /* The screenshots are 1024 pixels wide (CI's screen): shown larger, they blur. */
+  .shot :global(img), .panel :global(img), .wide :global(img) { width: 100%; max-width: 1024px; margin-inline: auto; }
+  .shot :global(img) { box-shadow: 0 40px 80px -30px rgb(0 0 0 / 0.6); }
+
+  .specs { background: var(--dark); }
+  .specs ul { display: flex; flex-wrap: wrap; gap: 12px 32px; list-style: none; margin-block: 0; padding-block: 28px 36px; color: var(--on-dark-muted); font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; }
+  .specs li { display: flex; align-items: center; gap: 10px; }
+  .specs li::before { content: ''; width: 6px; height: 6px; background: var(--accent); }
+
+  /* Profiles: a sticky intro beside rows that turn ink on hover, then the screenshots as tabs. */
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 64px; }
+  .sticky { position: sticky; top: calc(var(--nav-h, 76px) + 32px); align-self: start; }
+  .rows { margin: 0; display: grid; gap: 4px; align-content: start; }
+  .rows > div { display: grid; grid-template-columns: 17ch minmax(0, 1fr); gap: 24px; padding: 18px 20px; background: var(--light-raised); }
+  .rows > div:hover { background: var(--dark); color: var(--white); }
+  .rows > div:hover dd { color: var(--on-dark-muted); }
+  dt { font-weight: 600; }
+  dd { margin: 0; color: var(--on-light-muted); }
+
+  .tabs { margin-top: clamp(64px, 8vw, 104px); }
+  .tablist { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 32px; }
+  .tablist label { cursor: pointer; }
+  .tablist input { position: absolute; opacity: 0; pointer-events: none; }
+  .tablist span { display: block; padding: 12px 18px; background: var(--light-raised); font-weight: 500; }
+  .tablist label:hover span { background: var(--dark); color: var(--white); }
+  .tablist input:checked + span { background: var(--accent); color: var(--dark); }
+  .tablist input:focus-visible + span { outline: 2px solid var(--dark); outline-offset: 2px; }
+  .panel { display: none; }
+  .tabs:has(input[value='0']:checked) .panel[data-index='0'],
+  .tabs:has(input[value='1']:checked) .panel[data-index='1'],
+  .tabs:has(input[value='2']:checked) .panel[data-index='2'],
+  .tabs:has(input[value='3']:checked) .panel[data-index='3'] { display: block; }
+
+  /* Dock: ink tiles, then two screenshots side by side. */
+  .tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; list-style: none; margin: 64px 0 0; padding: 0; }
+  .tiles li { padding: 22px 20px; background: var(--dark-raised); border-top: 3px solid transparent; }
+  .tiles li:hover { border-top-color: var(--accent); }
+  .tiles h3 { margin-bottom: 8px; }
+  .tiles p { color: var(--on-dark-muted); font-size: 0.85rem; }
+  .pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin-top: 64px; }
+
+  /* Widgets */
+  .columns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 48px; list-style: none; margin: 72px 0 0; padding: 0; }
+  .columns h3 { font: 400 var(--step-2)/1.1 var(--display); margin-bottom: 12px; }
+  .columns p { color: var(--on-primary-muted); max-width: 40ch; }
+  .wide { margin-top: 72px; }
+  .wide :global(img) { box-shadow: 0 40px 80px -30px rgb(0 0 0 / 0.45); }
+
+  /* Install */
+  .install { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 64px; margin-top: 64px; }
+  .steps { list-style: none; counter-reset: step; margin: 0; padding: 0; display: grid; gap: 4px; }
+  .steps li { counter-increment: step; display: grid; grid-template-columns: 2.2em minmax(0, 1fr); gap: 12px; padding: 14px 18px; background: var(--dark-raised); color: var(--on-dark-muted); }
+  .steps li::before { content: counter(step, decimal-leading-zero); color: var(--accent); font-weight: 600; }
+  .steps :global(strong), .steps :global(a), .steps :global(code) { color: var(--white); }
+  .note { color: var(--on-dark-muted); margin-bottom: 14px; }
+  .code { position: relative; margin-bottom: 32px; background: var(--light); color: var(--dark); }
+  pre { margin: 0; padding: 18px 88px 18px 20px; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 0.88rem; line-height: 1.7; }
+  .code button { position: absolute; top: 10px; right: 10px; padding: 6px 10px; border: 0; background: var(--dark); color: var(--white); font: 500 0.75rem/1 var(--mono); cursor: pointer; }
+  .code button:hover { background: var(--accent); color: var(--dark); }
+
+  /* Footer */
+  .foot { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 48px; color: var(--on-primary-muted); }
+  .foot .name { font: 400 var(--step-3)/1 var(--display); color: var(--white); margin-bottom: 12px; }
+  .foot ul { display: flex; flex-wrap: wrap; gap: 24px; list-style: none; margin: 18px 0 0; padding: 0; }
+  .foot a { color: var(--white); }
+  .foot a:hover { color: var(--dark); }
+
+  @media (max-width: 900px) {
+    .intro, .grid, .install { grid-template-columns: minmax(0, 1fr); gap: 40px; }
+    .sticky { position: static; }
+    .optional { display: none; }
+    .where { display: inline; }
+    .tiles, .columns { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .pair { grid-template-columns: minmax(0, 1fr); }
+  }
+  @media (max-width: 560px) {
+    .tiles, .columns { grid-template-columns: minmax(0, 1fr); gap: 4px 40px; }
+    .columns { gap: 36px; }
+    .rows > div { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+    .foot { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; }
+    .foot ul { justify-content: center; }
+  }
+  /* Phones: the section name takes the GitHub link's place (it is in the footer too). */
+  @media (max-width: 480px) {
+    .github { display: none; }
+  }
 </style>

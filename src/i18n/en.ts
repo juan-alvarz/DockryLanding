@@ -18,7 +18,7 @@ export const en = {
   hero: {
     // Three lines; the middle one is the one each design plays with.
     headline: ['One dock', 'for every', 'mode you’re in.'],
-    lead: 'Dockry is a dock for macOS that changes with what you’re doing. Give work and evenings their own apps, widgets and desktop, and switch between them with one shortcut.',
+    lead: 'Dockry is a dock for macOS that changes with what you’re doing. Give work and evenings their own apps, widgets and desktop, and switch between them with a click or a shortcut of your own.',
     download: 'Download for Mac',
     install: 'How to install',
     hint: 'Try it: switch profiles, and hover the dock',
@@ -41,7 +41,7 @@ export const en = {
         name: 'Chill',
         color: '#F08A4B',
         apps: ['Finder', 'Music', 'Photos', 'Messages', 'TV'],
-        widgets: ['spotify', 'clock'],
+        widgets: ['spotify', 'clock', 'date'],
       },
     ],
     song: ['Midnight City', 'M83'],
@@ -52,10 +52,11 @@ export const en = {
     title: 'Not one long row. One for each part of your day.',
     lead: 'A profile is a dock of its own: pinned apps, widgets, a color, and the desktop it lives on. Switching swaps all of it at once.',
     items: [
-      ['⌃⌥Space', 'Hold ⌃⌥ and tap Space to step through your profiles, like ⌘Tab. Let go to switch.'],
-      ['⌃⌥1 – 9', 'Jump straight to a profile. The menu bar item and the profile button do too.'],
-      ['Desktops', 'Each profile can take you to its own desktop, so Work stays on Desktop 1.'],
-      ['Yours', 'Edit apps, widgets, symbol and color in Settings, or as plain JSON.'],
+      ['Widgets', 'A clock, the date, Spotify, your Mac’s other users and Claude usage. Each profile picks its own.'],
+      ['Claude usage', 'How much of your plan’s 5-hour and weekly limits you’ve used. Click for when each one resets.'],
+      ['Yours to arrange', 'Drag apps, widgets and dividers into any order. Right-click to add a divider or a widget.'],
+      ['Edit Profiles', 'Pinned apps, widgets, symbol, color and desktop for each profile, in one editor.'],
+      ['Better than the Dock', 'Windows stop at its edge, every screen gets one, and the macOS Dock comes back when you quit.'],
     ],
   },
 
@@ -95,7 +96,7 @@ export const en = {
       'Drag <strong>Dockry</strong> onto <strong>Applications</strong>, then eject the disk image.',
       'Open it. When macOS says it can’t be opened, click <strong>Done</strong>.',
       'In <strong>System Settings → Privacy &amp; Security</strong>, click <strong>Open Anyway</strong> next to “Dockry was blocked”, and confirm.',
-      'Look for Dockry in the menu bar. Press <strong>⌃⌥1</strong> for Work, <strong>⌃⌥2</strong> for Chill.',
+      'Look for Dockry in the menu bar. Click the profile button at the start of the dock to switch, or give each profile a shortcut in <strong>Settings</strong>.',
     ],
     terminal: 'Or skip step 4 from the terminal:',
     command: 'xattr -dr com.apple.quarantine /Applications/Dockry.app',
